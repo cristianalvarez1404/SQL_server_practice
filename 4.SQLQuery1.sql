@@ -109,6 +109,42 @@ LEFT JOIN orders AS o
 ON c.id = o.customer_id
 WHERE o.order_id IS NOT NULL;
 
+/* Find customers without orders and orders without customers */
+SELECT *
+FROM customers AS c
+FULL JOIN orders AS o
+ON c.id = o.customer_id
+WHERE o.customer_id IS NULL OR c.id IS NULL;
+
+/*
+Get all customers along with their orders,
+but only for customers who have placed an order
+*/
+
+SELECT *
+FROM customers AS c
+LEFT JOIN orders AS o
+ON c.id = o.customer_id
+WHERE order_id IS NOT NULL
+
+SELECT *
+FROM customers AS c
+INNER JOIN orders AS o
+ON c.id = o.customer_id
+
+-- Generate all possible combinations of customers and orders
+
+SELECT *
+FROM customers
+CROSS JOIN orders;
+
+
+
+
+
+
+
+
 
 
 
