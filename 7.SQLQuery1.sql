@@ -59,7 +59,11 @@ SELECT
 SELECT
 	-10,
 	ABS(-10),
-	ABS(10)
+	ABS(10);
+
+
+
+
 
 
 
