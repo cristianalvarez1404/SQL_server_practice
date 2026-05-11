@@ -38,5 +38,22 @@ SELECT
 Sales / NULLIF(Quantity,0) AS price
 FROM Sales.Orders;
 
+-- Identify the customers who have no scores
+SELECT
+*
+FROM Sales.Customers
+WHERE Score IS NULL;
 
+-- List all customers who have scores
+SELECT
+*
+FROM Sales.Customers
+WHERE Score IS NOT NULL;
 
+-- List all details for customers who have not placed any orders
+SELECT
+*
+FROM Sales.Customers AS c
+LEFT JOIN Sales.Orders AS o
+ON c.CustomerID = o.CustomerID
+WHERE o.OrderID IS NOT NULL;
