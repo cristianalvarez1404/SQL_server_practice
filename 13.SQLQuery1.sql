@@ -89,7 +89,55 @@ SELECT
 *
 FROM Sales.Orders;
 
+-- Rank each order based on their sales from highest to lowest
+-- Additionally provide details such order Id, order date
 
+SELECT
+	OrderID,
+	OrderDate,
+	Sales,
+	RANK() OVER (ORDER BY Sales DESC) AS RankSales
+FROM Sales.Orders;
+
+
+SELECT
+OrderID,
+OrderDate,
+OrderStatus,
+Sales,
+SUM(Sales) OVER(PARTITION BY OrderStatus ORDER BY OrderDate 
+ROWS BETWEEN CURRENT ROW AND 2 FOLLOWING) TotalSales
+FROM Sales.Orders;
+
+--shortcut
+
+SELECT
+OrderID,
+OrderDate,
+OrderStatus,
+Sales,
+SUM(Sales) OVER(PARTITION BY OrderStatus ORDER BY OrderDate 
+ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) TotalSales
+FROM Sales.Orders;
+
+
+SELECT
+OrderID,
+OrderDate,
+OrderStatus,
+Sales,
+SUM(Sales) OVER(PARTITION BY OrderStatus ORDER BY OrderDate 
+ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) TotalSales
+FROM Sales.Orders;
+
+SELECT
+OrderID,
+OrderDate,
+OrderStatus,
+Sales,
+SUM(Sales) OVER(PARTITION BY OrderStatus ORDER BY OrderDate 
+ROWS UNBOUNDED PRECEDING) TotalSales
+FROM Sales.Orders;
 
 
 
