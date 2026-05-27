@@ -139,6 +139,59 @@ SUM(Sales) OVER(PARTITION BY OrderStatus ORDER BY OrderDate
 ROWS UNBOUNDED PRECEDING) TotalSales
 FROM Sales.Orders;
 
+/*----------------------------------------------------------*/
+
+SELECT
+	OrderID,
+	OrderDate,
+	OrderStatus,
+	Sales,
+	SUM(Sales) OVER(PARTITION BY OrderStatus) TotalSales
+FROM Sales.Orders
+ORDER BY SUM(Sales) OVER(PARTITION BY OrderStatus)
+
+-- Rank customers based on their total sales
+SELECT
+	OrderID,
+	OrderDate,
+	OrderStatus,
+	ProductID,
+	Sales,
+	SUM(Sales) OVER(PARTITION BY OrderStatus) TotalSales
+FROM Sales.Orders
+WHERE ProductID IN (101, 102);
+
+
+SELECT
+	CustomerID,
+	SUM(Sales) TotalSales,
+	RANK() OVER(ORDER BY SUM(Sales) DESC) RankCustomers 
+FROM Sales.Orders
+GROUP BY CustomerID
+
+SELECT
+	CustomerID,
+	SUM(Sales) TotalSales,
+	RANK() OVER(ORDER BY CustomerID DESC) RankCustomers 
+FROM Sales.Orders
+GROUP BY CustomerID
+
+
+--Aggregate windows functions
+--Find the total of orders
+
+SELECT
+	OrderID,
+	OrderDate,
+	OrderStatus,
+	COUNT(*) OVER(PARTITION BY OrderStatus) TotalOrders
+FROM Sales.Orders;
+
+
+
+
+
+
 
 
 
