@@ -187,6 +187,59 @@ SELECT
 	COUNT(*) OVER(PARTITION BY OrderStatus) TotalOrders
 FROM Sales.Orders;
 
+-- Find the total number of Orders
+-- Additionally provide details such order Id, order date
+
+SELECT
+	OrderID,
+	OrderDate,
+	CustomerID,
+	COUNT(*) OVER() TotalOrders,
+	COUNT(*) OVER(PARTITION BY CustomerID) OrdersByCustomers 
+FROM Sales.Orders;
+
+-- Find the total number of customers
+-- Find the total number of scores for the customers
+-- Additionally provide all customers details
+
+SELECT
+	*,
+	COUNT(*) OVER() TotalCustomers,
+	COUNT(Score) OVER() TotalScore
+FROM Sales.Customers;
+
+-- Check whether the table 'orders' contains any duplicate rows
+SELECT
+*
+FROM (
+	SELECT
+		OrderID,
+		COUNT(*) OVER(PARTITION BY OrderID) CheckPK
+	FROM Sales.OrdersArchive
+)t WHERE CheckPK > 1
+
+-- Find the total sales across all orders
+-- And the total sales for each product
+-- Additionally provide details such order Id, order date
+
+SELECT
+	OrderID,
+	OrderDate,
+	ProductID,
+	SUM(Sales) OVER() TotalSales,
+	SUM(Sales) OVER(PARTITION BY ProductID) AS totalSalesProduct
+FROM Sales.Orders;
+
+
+
+
+
+
+
+
+
+
+
 
 
 
