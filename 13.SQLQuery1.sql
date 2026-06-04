@@ -230,14 +230,77 @@ SELECT
 	SUM(Sales) OVER(PARTITION BY ProductID) AS totalSalesProduct
 FROM Sales.Orders;
 
+-- Find the percentage contribution of each product's sales to the total sales
+
+SELECT
+	OrderID,
+	ProductID,
+	Sales,
+	SUM(Sales) OVER() TotalSales,
+	ROUND((CAST (Sales AS FLOAT) / SUM(Sales) OVER() * 100), 2) PercentageOfTotal
+FROM Sales.Orders;
+
+-- Find the average sales across all orders
+-- And find the average sales for each product
+-- Additionally provide details such order ID, order date
+
+SELECT
+	OrderID,
+	OrderDate,
+	ProductID,
+	Sales,
+	AVG(COALESCE(Sales,0)) OVER(PARTITION BY ProductID) AvgByProduct
+FROM Sales.Orders;
+
+-- Find the average scores of customers
+-- Additionally provide details such customerID and lastname
+
+SELECT
+	CustomerID,
+	LastName,
+	Score,
+	AVG(COALESCE(Score,0)) OVER(PARTITION BY CustomerID) AvgCustomer
+FROM Sales.Customers;
+
+-- Find all orders where sales are higher than the average sales across all orders
+
+SELECT
+*
+FROM (
+	SELECT
+		OrderID,
+		ProductID,
+		Sales,
+		AVG(COALESCE(Sales, 0)) OVER() AS AvgSales
+	FROM Sales.Orders
+)t WHERE Sales > AvgSales
+ 
+-- Find the highest and lowest sales of all orders
+-- Find the highest and lowest sales for each product
+-- Additionally provide details such order Id, order date
+
+SELECT
+	OrderID,
+	OrderDate,
+	ProductID,
+	Sales,
+	MAX(Sales) OVER() HighestSales,
+	MAX(Sales) OVER(PARTITION BY ProductID) AS HighestSalesByProduct,
+	MIN(Sales) OVER() LowestSales,
+	MIN(Sales) OVER(PARTITION BY ProductID) AS LowestSalesByProduct
+FROM Sales.Orders
 
 
+-- Show the employees who have the highest salaries
 
-
-
-
-
-
+SELECT
+*
+FROM (
+	SELECT
+		*,
+		MAX(Salary) OVER() HighestSalary
+	FROM Sales.Employees;
+) t WHERE Salary = HighestSalary;
 
 
 
