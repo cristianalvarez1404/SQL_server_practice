@@ -299,8 +299,48 @@ FROM (
 	SELECT
 		*,
 		MAX(Salary) OVER() HighestSalary
-	FROM Sales.Employees;
+	FROM Sales.Employees
 ) t WHERE Salary = HighestSalary;
+
+-- Find the deviation of each sales from the minimum and maximum sales amounts
+
+SELECT
+	OrderID,
+	OrderDate,
+	ProductID,
+	Sales,
+	MAX(Sales) OVER() HighestSales,
+	MIN(Sales) OVER() LowestSales,
+	Sales - MIN(Sales) OVER() DeviationFromMin,
+	MAX(Sales) OVER() - Sales DeviationFromMax
+FROM Sales.Orders;
+
+SELECT
+	OrderID,
+	OrderDate,
+	ProductID,
+	Sales,
+	SUM(Sales) OVER(ORDER BY ProductID) total
+FROM Sales.Orders;
+
+-- Calculate moving average of sales for each product over time
+-- Calculate moving average of sales for each product over time, including only the next order
+
+SELECT
+	OrderID,
+	ProductID,
+	OrderDate,
+	Sales,
+	AVG(Sales) OVER(PARTITION BY ProductID) AS AvgByProduct,
+	AVG(Sales) OVER(PARTITION BY ProductID ORDER BY OrderDate) AS MovingAvg,
+	AVG(Sales) OVER(PARTITION BY ProductID ORDER BY OrderDate ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING) AS RollingAvg 
+FROM Sales.Orders;
+
+
+
+
+
+
 
 
 
