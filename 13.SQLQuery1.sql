@@ -230,8 +230,25 @@ SELECT
 	SUM(Sales) OVER(PARTITION BY ProductID) AS totalSalesProduct
 FROM Sales.Orders;
 
+-- In order to export the data, divide the orders into 2 groups
 
+SELECT
+NTILE(4) OVER (ORDER BY OrderID) Buckets,
+*
+FROM Sales.Orders;
 
+-- Find the products that fall within the highest 40% of the prices
+SELECT
+*,
+CONCAT(DistRank * 100, '%') AS percentage_product
+FROM (
+SELECT
+	Product,
+	Price,
+	CUME_DIST() OVER(ORDER BY Price) AS DistRank,
+	PERCENT_RANK() OVER(ORDER BY Price) AS product_per
+FROM Sales.Products
+) t WHERE DistRank < 0.40
 
 
 
