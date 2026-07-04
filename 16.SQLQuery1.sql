@@ -88,12 +88,64 @@ SELECT
 ) AS o 
 ON c.CustomerID = o.CustomerID
 
+-- Find the products that have a price higher than the average price of all products
+SELECT
+ProductID,
+Price,
+(SELECT AVG(Price) FROM Sales.Products) AS AvgPrice
+FROM Sales.Products
+WHERE Price > (SELECT AVG(Price) FROM Sales.Products)
+
+-- Show the datails of orders made by customers in Germany
+SELECT
+*
+FROM Sales.Orders
+WHERE CustomerID IN 
+					(SELECT 
+						CustomerID 
+						FROM Sales.Customers 
+						WHERE Country = 'Germany'
+					);
+
+-- Find female employees whose salaries are greater than the salaries of any male employees
+SELECT
+*
+FROM Sales.Employees
+WHERE Gender = 'F' AND 
+Salary > ANY (
+	SELECT
+		Salary
+		FROM Sales.Employees
+	WHERE Gender = 'M'
+)
 
 
+/*Correlated subqueries(Dependet MANY QUERY and EXECUTE FOR EACH ROW) => IMPORTANT! */
+-- Show all customer details and find the total orders of each customer
+SELECT
+	*,
+	(SELECT COUNT(*) FROM Sales.Orders AS o WHERE o.CustomerID = c.CustomerID) TotalSales
+FROM Sales.Customers c;
 
+-- Show the details of orders made by customers in Germany
+SELECT
+*
+FROM Sales.Orders AS o
+WHERE EXISTS(SELECT 1
+				FROM Sales.Customers AS c
+				WHERE Country = 'Germany'
+				AND o.CustomerID = c.CustomerID);
 
+/*No Correlated subqueries(Independet MANY QUERY and EXECUTE ONCE and result is used by the main query) => IMPORTANT! */
 
-
+-- Show the details of orders made by customers not in Germany
+SELECT
+*
+FROM Sales.Orders
+WHERE CustomerID NOT IN (SELECT
+						CustomerID
+						FROM Sales.Customers
+						WHERE Country = 'Germany');
 
 
 
