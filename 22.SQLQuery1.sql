@@ -14,3 +14,13 @@
 */
 
 
+CREATE CLUSTERED INDEX idx_DBCustomers_CustomerID ON Sales.DBCustomers(CustomerID);
+
+CREATE CLUSTERED INDEX idx_DBCustomers_FirstName ON Sales.DBCustomers(FirstName);
+
+DROP INDEX idx_DBCustomers_CustomerID ON Sales.DBCustomers
+
+CREATE NONCLUSTERED INDEX idx_DBCustomers_LastName ON Sales.DBCustomers(LastName);
+
+CREATE INDEX idx_DBCustomers_CountryScore ON Sales.DBCustomers(Country, Score);
+
