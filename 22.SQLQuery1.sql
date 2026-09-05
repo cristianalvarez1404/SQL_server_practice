@@ -142,3 +142,4 @@ ALTER INDEX idx_Customers_Country ON Sales.Customers REBUILD
 -- Monitor duplicate indexes
 -- Update statistics
 -- Monitor fragmentations
+
