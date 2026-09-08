@@ -72,3 +72,168 @@ CREATE NONCLUSTERED INDEX Idx_Orders_OrderStatus ON Sales.Orders(OrderStatus);
 -- Avoid applying functions to columns in WHERE clauses
 SELECT * FROM Sales.Orders
 WHERE LOWER(OrderStatus) = 'delivered'
+
+-- BAB PRACTICE
+SELECT *
+FROM Sales.Customers
+WHERE SUBSTRING(FirstName, 1, 1) = 'A'
+
+-- GOOD PRACTICE
+SELECT *
+FROM Sales.Customers
+WHERE FirstName LIKE 'A%';
+
+--BAD PRACTICE
+SELECT *
+FROM Sales.Orders
+WHERE YEAR(OrderDate) = 2025
+
+--GOOD PRACTICE
+SELECT *
+FROM Sales.Orders
+WHERE OrderDate BETWEEN '2025-01-01' AND '2025-12-31'
+
+/* Avoid leading wildcards as they prevent index usage*/
+-- BAD PRACTICE
+SELECT *
+FROM Sales.Customers
+WHERE LastName LIKE '%Gold%';
+
+-- GOOD PRACTICE
+SELECT *
+FROM Sales.Customers
+WHERE LastName LIKE 'Gold%';
+
+/*Use IN instead of multiple OR*/
+
+--BAD PRACTICE
+SELECT *
+FROM Sales.Orders
+WHERE CustomerID = 1 OR CustomerID = 2 OR CustomerID = 3
+
+--GOOD PRACTICE
+SELECT *
+FROM Sales.Orders
+WHERE CustomerID IN (1,2,3)
+
+
+/*JOINS BEST PRACTICE*/
+-- Best performance
+SELECT
+  c.FirstName,
+  o.OrderID
+FROM Sales.Customers AS c
+INNER JOIN Sales.Orders AS o
+ON c.CustomerID = o.CustomerID;
+
+--Slighly slower performance
+SELECT
+  c.FirstName,
+  o.OrderID
+FROM Sales.Customers AS c
+RIGHT JOIN Sales.Orders AS o
+ON c.CustomerID = o.CustomerID;
+
+SELECT
+  c.FirstName,
+  o.OrderID
+FROM Sales.Customers AS c
+LEFT JOIN Sales.Orders AS o
+ON c.CustomerID = o.CustomerID;
+
+-- Worst Performance
+SELECT
+  c.FirstName,
+  o.OrderID
+FROM Sales.Customers AS c
+OUTER JOIN Sales.Orders AS o
+ON c.CustomerID = o.CustomerID;
+
+/*
+  Use explicit JOIN (ANSI JOIN) instead of implicit JOIN (NON-ANSI JOIN)
+*/
+
+-- BAD PRACTICE
+SELECT o.OrderID, c.FirstName
+FROM Sales.Customers c, Sales.Orders o
+WHERE c.CustomerID = o.CustomerID;
+
+-- GOOD PRACTICE
+SELECT o.OrderID, c.FirstName
+FROM Sales.Customers c
+INNER JOIN Sales.Orders o
+ON o.CustomerID = o.CustomerID;
+
+/*
+  Make sure to index the columns used in the ON clause
+*/
+
+SELECT o.OrderID, c.FirstName
+FROM Sales.Customers c
+INNER JOIN Sales.Orders o
+ON o.CustomerID = o.CustomerID;
+
+CREATE NONCLUSTERED INDEX IX_Orders_CustomersID ON Sales.Orders(CustomerID)
+
+/*
+  Filter before joining (Big tables)
+*/
+
+-- Filter after JOIN (WHERE) -- FOR SMALL AND MEDIUM SIZE TABLES
+SELECT c.FirstName, o.OrderID
+FROM Sales.Customers c
+INNER JOIN Sales.Orders o
+ON c.CustomerID = o.CustomerID
+WHERE o.OrderStatus = 'Delivered';
+
+-- Filter During JOIN (AND)
+SELECT c.FirstName, o.OrderID
+FROM Sales.Customers c
+INNER JOIN Sales.Orders o
+ON c.CustomerID = o.CustomerID
+AND o.OrderStatus = 'Delivered'
+
+-- Filter before JOIN (SUBQUERY) -- FOR LAGE TABLES
+SELECT c.FirstName, o.OrderID
+FROM Sales.Customers c
+INNER JOIN (SELECT OrderID, CustomerID FROM Sales.Orders WHERE OrderStatus = 'Delivered') o
+ON c.CustomerID = o.CustomerID
+
+/*
+  AGGREGATE BEFORE JOING (BIG TABLES)
+*/
+-- Grouping and joining
+SELECT 
+  c.CustomerID, 
+  c.FirstName, 
+  COUNT(o.OrderID) AS OrderCount
+FROM Sales.Customers AS c
+INNER JOIN Sales.Orders AS o
+ON c.CustomerID = o.CustomerID
+GROUP BY c.CustomerID, c.FirstName
+
+-- Pre-aggregated Subquery
+SELECT 
+  c.CustomerID, 
+  c.FirstName, 
+  o.OrderCount
+FROM Sales.Customers AS c
+INNER JOIN (
+  SELECT 
+    CustomerID,
+    COUNT(OrderID) AS OrderCount
+  FROM Sales.Orders
+  GROUP BY CustomerID
+) AS o
+ON c.CustomerID = o.CustomerID
+
+-- Correlated subquery
+SELECT
+  c.CustomerID,
+  c.FirstName,
+  (SELECT 
+    COUNT(o.OrderID)
+    FROM Sales.Orders o
+    WHERE o.CustomerID = c.CustomerID
+  ) AS OrderCount
+FROM Sales.Customers AS c
