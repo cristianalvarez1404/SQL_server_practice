@@ -202,6 +202,8 @@ ON c.CustomerID = o.CustomerID
 /*
   AGGREGATE BEFORE JOING (BIG TABLES)
 */
+
+-- Best practices for small-medium tables
 -- Grouping and joining
 SELECT 
   c.CustomerID, 
@@ -212,6 +214,7 @@ INNER JOIN Sales.Orders AS o
 ON c.CustomerID = o.CustomerID
 GROUP BY c.CustomerID, c.FirstName
 
+-- Best practice for big tables
 -- Pre-aggregated Subquery
 SELECT 
   c.CustomerID, 
@@ -227,6 +230,7 @@ INNER JOIN (
 ) AS o
 ON c.CustomerID = o.CustomerID
 
+-- Bad practice
 -- Correlated subquery
 SELECT
   c.CustomerID,
@@ -237,3 +241,118 @@ SELECT
     WHERE o.CustomerID = c.CustomerID
   ) AS OrderCount
 FROM Sales.Customers AS c
+
+-- User union instead of OR in Joins
+
+-- Bad Practice
+SELECT o.OrderID, c.FirstName
+FROM Sales.Customers c
+INNER JOIN Sales.Orders o
+ON c.CustomerID = o.CustomerID
+OR c.CustomerID = o.SalesPersonID
+
+-- Best practice
+SELECT o.OrderID, c.FirstName
+FROM Sales.Customers c
+INNER JOIN Sales.Orders o
+ON c.CustomerID = o.CustomerID
+UNION
+SELECT o.OrderID, c.FirstName
+FROM Sales.Customers c
+INNER JOIN Sales.Orders o
+ON c.CustomerID = o.SalesPersonID
+
+-- Check for nested loops and use SQL HINTS
+
+SELECT o.OrderID, c.FirstName
+FROM Sales.Customers c
+INNER JOIN Sales.Orders o
+ON c.CustomerID = o.CustomerID
+
+-- Good practice for having big table & small table
+SELECT o.OrderID, c.FirstName
+FROM Sales.Customers c
+INNER JOIN Sales.Orders o
+ON c.CustomerID = o.CustomerID
+OPTION(HASH JOIN)
+
+-- UNION ALL instead of using UNION | duplicates are acceptable
+
+-- Bad practice
+SELECT CustomerID FROM Sales.Orders
+UNION
+SELECT CustomerID FROM Sales.OrdersArchive
+
+-- Best practice
+SELECT CustomerID FROM Sales.Orders
+UNION ALL
+SELECT CustomerID FROM Sales.OrdersArchive
+
+-- USE UNION ALL + Distinct instead of using UNION | duplicates are not acceptable
+
+-- Bad practice
+SELECT CustomerID FROM Sales.Orders
+UNION
+SELECT CustomerID FROM Sales.OrdersArchive
+
+-- Best practice
+SELECT DISTINCT CustomerID
+FROM (
+  SELECT CustomerID FROM Sales.Orders
+  UNION ALL
+  SELECT CustomerID FROM Sales.OrdersArchive
+) AS CombinedData
+
+
+-- Use columnstore Index for Aggregations on large table
+
+SELECT 
+  CustomerID,
+  COUNT(OrderID) AS OrderCount
+FROM Sales.Orders
+GROUP BY CustomerID
+
+CREATE CLUSTERED COLUMNSTORE INDEX Idx_Orders_Columnstore ON Sales.Orders
+
+-- Pre-Aggregate data and store it in new table for reporting
+
+SELECT
+  MONTH(OrderDate) AS OrderYear,
+  SUM(Sales) AS TotalSales
+FROM Sales.Orders
+GROUP BY MONTH(OrderDate);
+
+SELECT
+  MONTH(OrderDate) AS OrderYear,
+  SUM(Sales) AS TotalSales
+INTO Sales.SalesSummary
+FROM Sales.Orders
+GROUP BY MONTH(OrderDate);
+
+/*TIPS SUBQUERIES*/
+
+-- JOIN (BEST PRACTICE IF THE PERFORMANCE EQUALS TO EXISTS)
+SELECT o.OrderID, o.Sales
+FROM Sales.Orders o
+INNER JOIN Sales.Customers c
+ON o.CustomerID = c.CustomerID
+WHERE c.Country = 'USA'
+
+-- EXISTS (BEST PRACTICE: USE IT FOR LARGE TABLES)
+SELECT o.OrderID, o.Sales
+FROM Sales.Orders o
+WHERE EXISTS (
+  SELECT 1
+  FROM Sales.Customers c
+  WHERE c.CustomerID = o.CustomerID
+  AND c.Country = 'USA'
+)
+
+-- IN - BAD PRACTICE(EVALUATE ALL ROWS)
+SELECT o.OrderID, o.Sales
+FROM Sales.Orders o
+WHERE o.CustomerID IN (
+  SELECT CustomerID
+  FROM Sales.Customers
+  WHERE Country = 'USA'
+)
