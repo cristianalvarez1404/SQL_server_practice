@@ -356,3 +356,61 @@ WHERE o.CustomerID IN (
   FROM Sales.Customers
   WHERE Country = 'USA'
 )
+
+-- Avoid redundant logic in your query
+
+-- Bad practice
+SELECT 
+  EmployeeID,
+  FirstName,
+  'Above Average' AS Status
+FROM Sales.Employees
+WHERE Salary > (SELECT AVG(Salary) FROM Sales.Employees)
+UNION ALL
+SELECT 
+  EmployeeID,
+  FirstName,
+  'Below Average' AS Status
+FROM Sales.Employees
+WHERE Salary < (SELECT AVG(Salary) FROM Sales.Employees)
+
+-- Good practice
+SELECT
+  EmployeeID,
+  FirstName,
+  CASE
+    WHEN Salary > AVG(Salary) OVER() THEN 'Above Average'
+    WHEN Salary < AVG(Salary) OVER() THEN 'Below Average'
+    ELSE 'Average'
+  END AS Status
+FROM Sales.Employees
+
+-- CREATING TABLES (DDL)
+
+CREATE TABLE CustomersInfo (
+  CustomerID INT,
+  FirstName VARCHAR(MAX),
+  LastName TEXT,
+  Country VARCHAR(255),
+  TotalPurchases FLOAT,
+  Score VARCHAR(255),
+  BirthDate VARCHAR(255),
+  EmployeeID INT,
+  CONSTRAINT FK_CustomersInfo_EmployeeID FOREIGN KEY (EmployeeID)
+    REFERENCES Sales.Employees(EmployeeID)
+)
+
+CREATE TABLE CustomersInfo (
+  CustomerID INT PRIMARY KEY CLUSTERED,
+  FirstName VARCHAR(50) NOT NULL,
+  LastName VARCHAR(50) NOT NULL,
+  Country VARCHAR(50) NOT NULL,
+  TotalPurchases FLOAT,
+  Score INT,
+  BirthDate DATE,
+  EmployeeID INT,
+  CONSTRAINT FK_CustomersInfo_EmployeeID FOREIGN KEY (EmployeeID)
+    REFERENCES Sales.Employees(EmployeeID)
+)
+
+
